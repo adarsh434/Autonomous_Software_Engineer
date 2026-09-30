@@ -5,6 +5,7 @@ from tools.repository_analyzer import analyze_repository
 from tools.code_search import search_code
 from tools.file_reader import read_file
 from tools.code_structure import analyze_python_file
+from tools.repository_intelligence import get_repository_intelligence
 
 app = FastAPI(
     title="Autonomous Software Engineer",
@@ -27,6 +28,11 @@ class FileReadRequest(BaseModel):
 
 class CodeStructureRequest(BaseModel):
     file: str
+
+class RepositoryIntelligenceRequest(BaseModel):
+    path: str
+    query: str | None = None
+    file: str | None = None
 
 
 @app.get("/health")
@@ -94,6 +100,20 @@ def analyze_structure(request: CodeStructureRequest):
     try:
         return analyze_python_file(request.file)
 
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+@app.post("/repository/intelligence")
+def repository_intelligence(request: RepositoryIntelligenceRequest):
+    try:
+        return get_repository_intelligence(
+            repository_path=request.path,
+            query=request.query,
+            file_path=request.file
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=400,
