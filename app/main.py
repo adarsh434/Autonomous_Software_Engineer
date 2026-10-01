@@ -6,6 +6,7 @@ from tools.code_search import search_code
 from tools.file_reader import read_file
 from tools.code_structure import analyze_python_file
 from tools.repository_intelligence import get_repository_intelligence
+from agents.planner import create_plan
 
 app = FastAPI(
     title="Autonomous Software Engineer",
@@ -33,6 +34,9 @@ class RepositoryIntelligenceRequest(BaseModel):
     path: str
     query: str | None = None
     file: str | None = None
+
+class PlanningRequest(BaseModel):
+    task: str
 
 
 @app.get("/health")
@@ -117,5 +121,18 @@ def repository_intelligence(request: RepositoryIntelligenceRequest):
     except ValueError as e:
         raise HTTPException(
             status_code=400,
+            detail=str(e)
+        )
+
+@app.post("/agent/plan")
+def create_agent_plan(request: PlanningRequest):
+    try:
+        plan = create_plan(request.task)
+
+        return plan.model_dump()
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
             detail=str(e)
         )
